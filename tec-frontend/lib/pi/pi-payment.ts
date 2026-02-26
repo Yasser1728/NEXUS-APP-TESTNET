@@ -70,7 +70,8 @@ export const createA2UPayment = async (data: A2UPaymentRequest): Promise<Payment
   if (!token) throw new Error('غير مصرح — سجل الدخول أولاً / Unauthorized - Please log in first');
 
   try {
-    const response = await retryFetch('/api/payments/a2u', {
+    // [source: Core-Backend]
+    const response = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/a2u`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,7 +192,8 @@ export const createU2APayment = async (
 
           try {
             console.log('[Pi Payment] Server approval requested for:', paymentId);
-            const res = await retryFetch('/api/payments/approve', {
+            // [source: Core-Backend]
+            const res = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/approve`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ paymentId }),
@@ -255,7 +257,8 @@ export const createU2APayment = async (
 
           try {
             console.log('[Pi Payment] Server completion requested for:', paymentId, txid);
-            const res = await retryFetch('/api/payments/complete', {
+            // [source: Core-Backend]
+            const res = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/complete`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ paymentId, txid }),
@@ -319,7 +322,8 @@ export const createU2APayment = async (
 // Get payment status from server
 export const getPaymentStatus = async (paymentId: string): Promise<PaymentResult> => {
   try {
-    const response = await fetch(`/api/payments/status?paymentId=${encodeURIComponent(paymentId)}`);
+    // [source: Core-Backend]
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/${encodeURIComponent(paymentId)}/status`);
     
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Unknown error' }));
