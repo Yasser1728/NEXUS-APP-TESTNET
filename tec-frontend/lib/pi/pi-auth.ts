@@ -32,7 +32,8 @@ const handleIncompletePayment = async (payment: unknown) => {
   try {
     const paymentObj = payment as { identifier?: string };
     if (paymentObj?.identifier) {
-      await fetch('/api/payments/incomplete', {
+      // [source: Core-Backend]
+      await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/incomplete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId: paymentObj.identifier }),
