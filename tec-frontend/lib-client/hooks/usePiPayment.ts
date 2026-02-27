@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { createU2APayment, testPiSDK, PaymentResult, DiagnosticCallback } from '@/lib/pi/pi-payment';
-import { isPiBrowser } from '@/lib/pi/pi-auth';
+import { createU2APayment, testPiSDK, PaymentResult, DiagnosticCallback } from '@/lib-client/pi/pi-payment';
+import { isPiBrowser } from '@/lib-client/pi/pi-auth';
 
 interface PaymentState {
   isProcessing: boolean;
