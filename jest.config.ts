@@ -4,6 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>'],
   testMatch: ['**/__tests__/**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/tec-frontend/'],
   collectCoverageFrom: [
     'shared/**/*.ts',
     'packages/**/*.ts',
