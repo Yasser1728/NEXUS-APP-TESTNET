@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { loginWithPi, getStoredUser, logout as piLogout } from '@/lib/pi/pi-auth';
+import { loginWithPi, getStoredUser, logout as piLogout } from '@/lib-client/pi/pi-auth';
 import { TecUser } from '@/types/pi.types';
 
 interface AuthState {
