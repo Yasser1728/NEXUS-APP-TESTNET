@@ -32,7 +32,7 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
 
 h1, h2, h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
   font-weight: 300;
   letter-spacing: 0.02em;
   line-height: 1.1;
@@ -74,7 +74,7 @@ h1, h2, h3 {
   padding: 14px 32px;
   background: linear-gradient(135deg, #c9a84c, #a07830);
   color: #050507;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.08em;

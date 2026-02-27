@@ -11,14 +11,21 @@ export function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    // nonce covers Next.js inline hydration scripts; unsafe-eval is NOT included
-    `script-src 'self' 'nonce-${nonce}' sdk.minepi.com *.minepi.com`,
-    "connect-src 'self' sdk.minepi.com api.minepi.com *.minepi.com socialapis.pi",
+    // nonce covers Next.js inline hydration scripts; unsafe-eval is NOT included.
+    // https://sdk.minepi.com is the only external script host required by the Pi SDK.
+    `script-src 'self' 'nonce-${nonce}' https://sdk.minepi.com`,
+    "connect-src 'self' https://sdk.minepi.com https://api.minepi.com https://*.minepi.com https://socialapis.pi",
     "img-src 'self' data: https:",
+    // unsafe-inline is required for style-src because Next.js App Router injects
+    // inline <style> tags during SSR hydration. This cannot be removed without
+    // a custom nonce setup for styles, which is not yet supported by Next.js.
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
-    "frame-src 'self' sdk.minepi.com *.minepi.com",
+    "frame-src 'self' https://sdk.minepi.com https://*.minepi.com",
     "frame-ancestors 'self' https://*.minepi.com https://*.pinet.com https://sdk.minepi.com",
+    // Prevent plugin content (Flash, etc.) and disallow base tag injection
+    "object-src 'none'",
+    "base-uri 'self'",
   ].join('; ');
 
   const requestHeaders = new Headers(request.headers);
