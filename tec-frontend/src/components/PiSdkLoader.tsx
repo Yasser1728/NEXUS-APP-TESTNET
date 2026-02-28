@@ -23,7 +23,14 @@ export default function PiSdkLoader({ sandbox, timeout }: PiSdkLoaderProps) {
         try {
           const elapsed = Date.now() - startTime;
           console.log(`[TEC] Pi SDK loaded after ${elapsed}ms`);
-          window.Pi.init({ version: '2.0', sandbox });
+
+          // ← هنا نمرر appId من Environment Variables
+          window.Pi.init({ 
+            version: '2.0', 
+            sandbox, 
+            appId: process.env.NEXT_PUBLIC_PI_APP_ID 
+          });
+
           console.log(`[TEC] Pi SDK initialized (sandbox: ${sandbox})`);
           window.__TEC_PI_READY = true;
           window.dispatchEvent(new Event('tec-pi-ready'));
