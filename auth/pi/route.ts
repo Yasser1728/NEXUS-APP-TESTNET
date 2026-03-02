@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PI_API_URL = 'https://api.minepi.com';
+const PI_API_URL = process.env.NEXT_PUBLIC_PI_SANDBOX === 'true'
+  ? 'https://api.sandbox.minepi.com'
+  : 'https://api.minepi.com';
 
 export async function POST(request: NextRequest) {
   try {
