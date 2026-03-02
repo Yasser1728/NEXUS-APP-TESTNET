@@ -89,7 +89,7 @@ jobs:
     env:
       NEXT_PUBLIC_PI_APP_ID: test_app
       NEXT_PUBLIC_PI_SANDBOX: 'true'
-      NEXT_PUBLIC_API_GATEWAY_URL: http://localhost:3001
+      NEXT_PUBLIC_API_GATEWAY_URL: https://api-gateway-production-6a68.up.railway.app
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
