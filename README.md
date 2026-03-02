@@ -105,14 +105,14 @@ docker-compose up -d
 **Allowed domains (configure in Pi Developer Portal):**
 - `https://tec-app.vercel.app`
 - `https://sandbox.minepi.com/app/your-pi-app-id`
-- `https://your-api-gateway.example.com`
+- `https://api-gateway-production-6a68.up.railway.app`
 
 **Frontend environment variables (`tec-frontend/.env.local`):**
 ```
 NEXT_PUBLIC_PI_APP_ID=your-pi-app-id
 NEXT_PUBLIC_PI_APP_URL=https://sandbox.minepi.com/app/your-pi-app-id
 NEXT_PUBLIC_PI_SANDBOX=true
-NEXT_PUBLIC_API_GATEWAY_URL=https://your-api-gateway.example.com
+NEXT_PUBLIC_API_GATEWAY_URL=https://api-gateway-production-6a68.up.railway.app
 # NEXT_PUBLIC_PI_SDK_TIMEOUT=35000   # increase for slow networks
 ```
 
