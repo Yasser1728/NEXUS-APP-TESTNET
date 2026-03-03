@@ -82,6 +82,11 @@ describe('TecPaymentSDK', () => {
   });
 
   describe('createU2APayment', () => {
+    beforeEach(() => {
+      // Reset window.Pi before each test
+      (window as unknown as Record<string, unknown>).Pi = undefined;
+    });
+
     it('should reject if Pi Browser is not available', async () => {
       (isPiBrowser as jest.Mock).mockReturnValue(false);
 
@@ -90,12 +95,90 @@ describe('TecPaymentSDK', () => {
       );
     });
 
-    it('should reject with Pi Browser available but no window.Pi', async () => {
-      (isPiBrowser as jest.Mock).mockReturnValue(false);
+    it('should reject when backend payment create fails', async () => {
+      (isPiBrowser as jest.Mock).mockReturnValue(true);
+      mockClient.post.mockRejectedValue(new Error('Network error'));
 
-      await expect(
-        paymentSDK.createU2APayment(10, 'Test payment')
-      ).rejects.toThrow();
+      await expect(paymentSDK.createU2APayment(10, 'Test payment')).rejects.toThrow('Network error');
+      expect(mockClient.post).toHaveBeenCalledWith('/api/payments/create', expect.objectContaining({
+        amount: 10,
+        currency: 'PI',
+        payment_method: 'pi',
+      }));
+    });
+
+    it('should call approve with snake_case fields after onReadyForServerApproval', async () => {
+      (isPiBrowser as jest.Mock).mockReturnValue(true);
+
+      const mockCreatePayment = jest.fn();
+      (window as unknown as Record<string, unknown>).Pi = { createPayment: mockCreatePayment };
+
+      mockClient.post.mockImplementation(async (url: string) => {
+        if (url === '/api/payments/create') return { data: { id: 'internal-uuid-123' } };
+        if (url === '/api/payments/approve') return {};
+        return {};
+      });
+
+      // Start payment — don't await; it waits for Pi SDK callbacks
+      const paymentPromise = paymentSDK.createU2APayment(10, 'Test payment');
+
+      // Wait for the async create step and Pi.createPayment call
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockCreatePayment).toHaveBeenCalled();
+      const callbacks = mockCreatePayment.mock.calls[0][1];
+
+      // Trigger the approval callback
+      await callbacks.onReadyForServerApproval('pi-payment-id-abc');
+
+      expect(mockClient.post).toHaveBeenCalledWith('/api/payments/approve', {
+        payment_id: 'internal-uuid-123',
+        pi_payment_id: 'pi-payment-id-abc',
+      });
+
+      // Promise intentionally left unresolved — we only test the approval callback, not the full flow
+      paymentPromise.catch(() => {});
+    });
+
+    it('should call complete with snake_case fields and resolve on onReadyForServerCompletion', async () => {
+      (isPiBrowser as jest.Mock).mockReturnValue(true);
+
+      const mockResult: PaymentResult = {
+        success: true,
+        paymentId: 'pi-payment-id-abc',
+        txid: 'txid-xyz',
+        status: 'completed',
+        amount: 10,
+        memo: 'Test payment',
+      };
+
+      const mockCreatePayment = jest.fn();
+      (window as unknown as Record<string, unknown>).Pi = { createPayment: mockCreatePayment };
+
+      mockClient.post.mockImplementation(async (url: string) => {
+        if (url === '/api/payments/create') return { data: { id: 'internal-uuid-123' } };
+        if (url === '/api/payments/complete') return mockResult;
+        return {};
+      });
+
+      const paymentPromise = paymentSDK.createU2APayment(10, 'Test payment');
+
+      // Wait for create step and Pi.createPayment call
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockCreatePayment).toHaveBeenCalled();
+      const callbacks = mockCreatePayment.mock.calls[0][1];
+
+      // Trigger completion callback
+      await callbacks.onReadyForServerCompletion('pi-payment-id-abc', 'txid-xyz');
+
+      const result = await paymentPromise;
+
+      expect(mockClient.post).toHaveBeenCalledWith('/api/payments/complete', {
+        payment_id: 'internal-uuid-123',
+        transaction_id: 'txid-xyz',
+      });
+      expect(result).toEqual(mockResult);
     });
   });
 });
