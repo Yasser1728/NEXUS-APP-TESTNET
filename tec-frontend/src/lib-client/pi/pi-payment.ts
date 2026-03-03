@@ -32,35 +32,37 @@ const retryFetch = async (
   maxRetries = MAX_RETRIES
 ): Promise<Response> => {
   let lastError: Error | null = null;
-  
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       const response = await fetch(url, options);
-      
+
       // Non-retriable status codes: return immediately without retrying
       if (NON_RETRIABLE_STATUS_CODES.has(response.status)) {
         return response;
       }
-      
+
       // Retriable status codes (e.g. 404 = payment not yet indexed, 429 = rate limited)
       // Retry with exponential back-off unless this is the last attempt
       if (RETRIABLE_STATUS_CODES.has(response.status) && i < maxRetries) {
         const delay = RETRY_BASE_DELAY_MS * (i + 1);
-        console.warn(`[Pi Payment] Retriable HTTP ${response.status} on attempt ${i + 1}/${maxRetries + 1}, retrying in ${delay}ms`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        console.warn(
+          `[Pi Payment] Retriable HTTP ${response.status} on attempt ${i + 1}/${maxRetries + 1}, retrying in ${delay}ms`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       return response;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error('Unknown error');
       if (i < maxRetries) {
         // Wait before retry (exponential backoff: 1s, 2s)
-        await new Promise(resolve => setTimeout(resolve, RETRY_BASE_DELAY_MS * (i + 1)));
+        await new Promise((resolve) => setTimeout(resolve, RETRY_BASE_DELAY_MS * (i + 1)));
       }
     }
   }
-  
+
   throw lastError || new Error('Request failed');
 };
 
@@ -77,7 +79,7 @@ export const createA2UPayment = async (data: A2UPaymentRequest): Promise<Payment
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Idempotency-Key': idempotencyKey,
       },
       body: JSON.stringify(data),
@@ -90,7 +92,8 @@ export const createA2UPayment = async (data: A2UPaymentRequest): Promise<Payment
 
     return response.json();
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'فشل إنشاء الدفعة / Failed to create payment';
+    const message =
+      err instanceof Error ? err.message : 'فشل إنشاء الدفعة / Failed to create payment';
     throw new Error(message);
   }
 };
@@ -111,7 +114,9 @@ export const createU2APayment = async (
   onDiagnostic?: DiagnosticCallback
 ): Promise<PaymentResult> => {
   if (typeof window === 'undefined') {
-    throw new Error('Pi SDK غير متاح — افتح التطبيق في Pi Browser / Pi SDK not available - Open in Pi Browser');
+    throw new Error(
+      'Pi SDK غير متاح — افتح التطبيق في Pi Browser / Pi SDK not available - Open in Pi Browser'
+    );
   }
 
   // Wait for Pi SDK to be ready before attempting payment
@@ -127,25 +132,46 @@ export const createU2APayment = async (
   let internalId: string | null = null;
   const storedUser = getStoredUser();
   const userId = storedUser?.id ?? null;
+  const token = getAccessToken();
 
   if (userId) {
     try {
-      onDiagnostic?.('info', `Creating backend payment record (userId: ${userId}, amount: ${amount})`, { userId, amount });
+      onDiagnostic?.(
+        'info',
+        `Creating backend payment record (userId: ${userId}, amount: ${amount})`,
+        { userId, amount }
+      );
       console.log('[Pi Payment] Creating backend payment record for userId:', userId);
-      const createRes = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-        body: JSON.stringify({ userId, amount, payment_method: 'pi', metadata }),
-      });
+      const createRes = await retryFetch(
+        `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/create`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': idempotencyKey,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ userId, amount, payment_method: 'pi', metadata }),
+        }
+      );
       if (createRes.ok) {
         const createData = await createRes.json();
         internalId = createData?.data?.payment?.id ?? null;
         console.log('[Pi Payment] Backend payment record created, internalId:', internalId);
-        onDiagnostic?.('info', `Backend record created (internalId: ${internalId})`, { internalId });
+        onDiagnostic?.('info', `Backend record created (internalId: ${internalId})`, {
+          internalId,
+        });
       } else {
         const errData = await createRes.json().catch(() => ({}));
-        console.warn('[Pi Payment] Backend payment create failed (non-blocking):', errData?.error?.message ?? createRes.status);
-        onDiagnostic?.('warn', `Backend create failed (${createRes.status}) — proceeding without internalId`, { status: createRes.status });
+        console.warn(
+          '[Pi Payment] Backend payment create failed (non-blocking):',
+          errData?.error?.message ?? createRes.status
+        );
+        onDiagnostic?.(
+          'warn',
+          `Backend create failed (${createRes.status}) — proceeding without internalId`,
+          { status: createRes.status }
+        );
       }
     } catch (createErr) {
       console.warn('[Pi Payment] Backend payment create error (non-blocking):', createErr);
@@ -158,7 +184,11 @@ export const createU2APayment = async (
 
   return new Promise((resolve, reject) => {
     if (!window.Pi) {
-      reject(new Error('Pi SDK غير متاح — افتح التطبيق في Pi Browser / Pi SDK not available - Open in Pi Browser'));
+      reject(
+        new Error(
+          'Pi SDK غير متاح — افتح التطبيق في Pi Browser / Pi SDK not available - Open in Pi Browser'
+        )
+      );
       return;
     }
 
@@ -169,10 +199,10 @@ export const createU2APayment = async (
     // Total: up to 6 minutes — each stage has dedicated time.
     const approvalTimeoutMs = APPROVAL_TIMEOUT_MS;
     const completionTimeoutMs = COMPLETION_TIMEOUT_MS;
-    
+
     let paymentTimedOut = false;
     let paymentTimer: NodeJS.Timeout | null = null;
-    
+
     const startApprovalTimer = () => {
       // Clear any existing timer first
       if (paymentTimer) {
@@ -182,13 +212,15 @@ export const createU2APayment = async (
       paymentTimer = setTimeout(() => {
         paymentTimedOut = true;
         console.error(`[Pi Payment] Approval stage timed out after ${approvalTimeoutMs}ms`);
-        reject(new Error(
-          'انتهت مهلة موافقة الدفع. يرجى المحاولة مرة أخرى.\n' +
-          'Payment approval timed out. Please try again.'
-        ));
+        reject(
+          new Error(
+            'انتهت مهلة موافقة الدفع. يرجى المحاولة مرة أخرى.\n' +
+              'Payment approval timed out. Please try again.'
+          )
+        );
       }, approvalTimeoutMs);
     };
-    
+
     const startCompletionTimer = () => {
       // Clear existing timer
       if (paymentTimer) {
@@ -198,10 +230,12 @@ export const createU2APayment = async (
       paymentTimer = setTimeout(() => {
         paymentTimedOut = true;
         console.error(`[Pi Payment] Completion stage timed out after ${completionTimeoutMs}ms`);
-        reject(new Error(
-          'انتهت مهلة إكمال الدفع. يرجى المحاولة مرة أخرى.\n' +
-          'Payment completion timed out. Please try again.'
-        ));
+        reject(
+          new Error(
+            'انتهت مهلة إكمال الدفع. يرجى المحاولة مرة أخرى.\n' +
+              'Payment completion timed out. Please try again.'
+          )
+        );
       }, completionTimeoutMs);
     };
 
@@ -212,7 +246,7 @@ export const createU2APayment = async (
         paymentTimer = null;
       }
     };
-    
+
     // Start approval timer
     startApprovalTimer();
 
@@ -223,58 +257,88 @@ export const createU2APayment = async (
           if (paymentTimedOut) return;
 
           // Log diagnostic event
-          onDiagnostic?.('approval', `onReadyForServerApproval: piPaymentId=${piPaymentId}`, { piPaymentId, internalId });
+          onDiagnostic?.('approval', `onReadyForServerApproval: piPaymentId=${piPaymentId}`, {
+            piPaymentId,
+            internalId,
+          });
 
           // Validate Pi payment ID format before sending to server
           if (!PI_PAYMENT_ID_REGEX.test(piPaymentId)) {
             console.error('[Pi Payment] Invalid piPaymentId format:', piPaymentId);
             onDiagnostic?.('error', `Invalid piPaymentId format: ${piPaymentId}`, { piPaymentId });
             clearPaymentTimer();
-            reject(new Error(
-              'معرف الدفع غير صالح / Invalid payment ID format'
-            ));
+            reject(new Error('معرف الدفع غير صالح / Invalid payment ID format'));
             return;
           }
 
           if (!internalId) {
             // No backend record — approve step will fail validation; log and skip
-            console.warn('[Pi Payment] No internalId — cannot call /payments/approve (backend record not created)');
-            onDiagnostic?.('warn', 'Skipping /payments/approve — no backend payment record (internalId missing)', { piPaymentId });
+            console.warn(
+              '[Pi Payment] No internalId — cannot call /payments/approve (backend record not created)'
+            );
+            onDiagnostic?.(
+              'warn',
+              'Skipping /payments/approve — no backend payment record (internalId missing)',
+              { piPaymentId }
+            );
             startCompletionTimer();
             return;
           }
 
           try {
-            console.log('[Pi Payment] Calling /payments/approve:', { payment_id: internalId, pi_payment_id: piPaymentId });
-            // [source: Core-Backend]
-            const res = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/approve`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-              body: JSON.stringify({ payment_id: internalId, pi_payment_id: piPaymentId }),
+            console.log('[Pi Payment] Calling /payments/approve:', {
+              payment_id: internalId,
+              pi_payment_id: piPaymentId,
             });
-            
+            // [source: Core-Backend]
+            const res = await retryFetch(
+              `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/approve`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Idempotency-Key': idempotencyKey,
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ payment_id: internalId, pi_payment_id: piPaymentId }),
+              }
+            );
+
             if (!res.ok) {
               const errorData = await res.json().catch(() => ({ message: 'Approval failed' }));
               const errorMsg = errorData.message || 'فشلت الموافقة / Approval failed';
               console.error('[Pi Payment] Server approval failed:', errorMsg);
               console.warn('[Pi Payment] Incomplete payment may remain:', piPaymentId);
-              onDiagnostic?.('error', `Server approval failed: ${errorMsg}`, { piPaymentId, internalId, error: errorMsg });
+              onDiagnostic?.('error', `Server approval failed: ${errorMsg}`, {
+                piPaymentId,
+                internalId,
+                error: errorMsg,
+              });
               clearPaymentTimer();
               reject(new Error(errorMsg));
               return;
             }
-            
+
             const result = await res.json();
             console.log('[Pi Payment] Server approval successful:', result);
-            onDiagnostic?.('approval', `Server approval successful (internalId: ${internalId})`, { piPaymentId, internalId, result });
-            
+            onDiagnostic?.('approval', `Server approval successful (internalId: ${internalId})`, {
+              piPaymentId,
+              internalId,
+              result,
+            });
+
             // Switch to completion timer after successful approval
             startCompletionTimer();
           } catch (err) {
             console.error('[Pi Payment] Server approval error:', err);
             console.warn('[Pi Payment] Incomplete payment may remain:', piPaymentId);
-            const errorMessage = err instanceof Error ? err.message : 'فشلت الموافقة / Approval failed';
-            onDiagnostic?.('error', `Server approval error: ${errorMessage}`, { piPaymentId, internalId, error: errorMessage });
+            const errorMessage =
+              err instanceof Error ? err.message : 'فشلت الموافقة / Approval failed';
+            onDiagnostic?.('error', `Server approval error: ${errorMessage}`, {
+              piPaymentId,
+              internalId,
+              error: errorMessage,
+            });
             clearPaymentTimer();
             reject(new Error(errorMessage));
           }
@@ -283,16 +347,20 @@ export const createU2APayment = async (
           if (paymentTimedOut) return;
 
           // Log diagnostic event
-          onDiagnostic?.('completion', `onReadyForServerCompletion: piPaymentId=${piPaymentId} txid=${txid}`, { piPaymentId, txid, internalId });
+          onDiagnostic?.(
+            'completion',
+            `onReadyForServerCompletion: piPaymentId=${piPaymentId} txid=${txid}`,
+            { piPaymentId, txid, internalId }
+          );
 
           // Validate Pi payment ID format before sending to server
           if (!PI_PAYMENT_ID_REGEX.test(piPaymentId)) {
             console.error('[Pi Payment] Invalid piPaymentId format in completion:', piPaymentId);
-            onDiagnostic?.('error', `Invalid piPaymentId format in completion: ${piPaymentId}`, { piPaymentId });
+            onDiagnostic?.('error', `Invalid piPaymentId format in completion: ${piPaymentId}`, {
+              piPaymentId,
+            });
             clearPaymentTimer();
-            reject(new Error(
-              'معرف الدفع غير صالح / Invalid payment ID format'
-            ));
+            reject(new Error('معرف الدفع غير صالح / Invalid payment ID format'));
             return;
           }
 
@@ -301,16 +369,20 @@ export const createU2APayment = async (
             console.error('[Pi Payment] Invalid txid format:', txid);
             onDiagnostic?.('error', `Invalid txid format: ${txid}`, { txid });
             clearPaymentTimer();
-            reject(new Error(
-              'معرف المعاملة غير صالح / Invalid transaction ID format'
-            ));
+            reject(new Error('معرف المعاملة غير صالح / Invalid transaction ID format'));
             return;
           }
 
           if (!internalId) {
             // No backend record — resolve as completed on the Pi side
-            console.warn('[Pi Payment] No internalId — skipping /payments/complete (backend record not created)');
-            onDiagnostic?.('warn', 'Skipping /payments/complete — no backend payment record (internalId missing)', { piPaymentId, txid });
+            console.warn(
+              '[Pi Payment] No internalId — skipping /payments/complete (backend record not created)'
+            );
+            onDiagnostic?.(
+              'warn',
+              'Skipping /payments/complete — no backend payment record (internalId missing)',
+              { piPaymentId, txid }
+            );
             clearPaymentTimer();
             resolve({
               success: true,
@@ -325,28 +397,47 @@ export const createU2APayment = async (
           }
 
           try {
-            console.log('[Pi Payment] Calling /payments/complete:', { payment_id: internalId, transaction_id: txid });
-            // [source: Core-Backend]
-            const res = await retryFetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/complete`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-              body: JSON.stringify({ payment_id: internalId, transaction_id: txid }),
+            console.log('[Pi Payment] Calling /payments/complete:', {
+              payment_id: internalId,
+              transaction_id: txid,
             });
-            
+            // [source: Core-Backend]
+            const res = await retryFetch(
+              `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/complete`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Idempotency-Key': idempotencyKey,
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ payment_id: internalId, transaction_id: txid }),
+              }
+            );
+
             if (!res.ok) {
               const errorData = await res.json().catch(() => ({ message: 'Completion failed' }));
               const errorMsg = errorData.message || 'فشل الإكمال / Completion failed';
               console.error('[Pi Payment] Server completion failed:', errorMsg);
-              onDiagnostic?.('error', `Server completion failed: ${errorMsg}`, { piPaymentId, internalId, txid, error: errorMsg });
+              onDiagnostic?.('error', `Server completion failed: ${errorMsg}`, {
+                piPaymentId,
+                internalId,
+                txid,
+                error: errorMsg,
+              });
               clearPaymentTimer();
               reject(new Error(errorMsg));
               return;
             }
-            
+
             const result = await res.json();
             console.log('[Pi Payment] Server completion successful:', result);
-            onDiagnostic?.('completion', `Server completion successful (internalId: ${internalId})`, { piPaymentId, internalId, txid, result });
-            
+            onDiagnostic?.(
+              'completion',
+              `Server completion successful (internalId: ${internalId})`,
+              { piPaymentId, internalId, txid, result }
+            );
+
             clearPaymentTimer();
             resolve({
               success: true,
@@ -359,8 +450,14 @@ export const createU2APayment = async (
               ...result,
             });
           } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'فشلت الدفعة / Payment failed';
-            onDiagnostic?.('error', `Server completion error: ${errorMessage}`, { piPaymentId, internalId, txid, error: errorMessage });
+            const errorMessage =
+              err instanceof Error ? err.message : 'فشلت الدفعة / Payment failed';
+            onDiagnostic?.('error', `Server completion error: ${errorMessage}`, {
+              piPaymentId,
+              internalId,
+              txid,
+              error: errorMessage,
+            });
             clearPaymentTimer();
             reject(new Error(errorMessage));
           }
@@ -392,16 +489,25 @@ export const createU2APayment = async (
 export const getPaymentStatus = async (paymentId: string): Promise<PaymentResult> => {
   try {
     // [source: Core-Backend]
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/${encodeURIComponent(paymentId)}/status`);
-    
+    const token = getAccessToken();
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/payments/${encodeURIComponent(paymentId)}/status`,
+      {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
+    );
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Unknown error' }));
       throw new Error(error.message || 'فشل جلب حالة الدفعة / Failed to fetch payment status');
     }
-    
+
     return response.json();
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'فشل جلب حالة الدفعة / Failed to fetch payment status';
+    const message =
+      err instanceof Error ? err.message : 'فشل جلب حالة الدفعة / Failed to fetch payment status';
     throw new Error(message);
   }
 };
