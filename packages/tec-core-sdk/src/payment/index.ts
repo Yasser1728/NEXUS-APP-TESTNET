@@ -2,11 +2,39 @@ import { TecApiClient } from '../client';
 import { isPiBrowser } from '../utils/pi-browser';
 import type { A2UPaymentRequest, PaymentResult, Payment } from '../types';
 
+// ─── Validation ───────────────────────────────────────────────────────────────
+const PI_PAYMENT_ID_REGEX = /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$/;
+const PI_TXID_REGEX = /^[a-zA-Z0-9_-]{8,128}$/;
+const MAX_AMOUNT = 1_000_000;
+const MIN_AMOUNT = 0.01;
+
+// ─── Timeouts ─────────────────────────────────────────────────────────────────
+const APPROVAL_TIMEOUT_MS = 3 * 60 * 1000;  // 3 minutes
+const COMPLETION_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
+
 export class TecPaymentSDK {
   private client: TecApiClient;
 
   constructor(client: TecApiClient) {
     this.client = client;
+  }
+
+  private validateAmount(amount: number): void {
+    if (!Number.isFinite(amount) || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+      throw new Error(`Amount must be between ${MIN_AMOUNT} and ${MAX_AMOUNT}`);
+    }
+  }
+
+  private validatePiPaymentId(piPaymentId: string): void {
+    if (!piPaymentId || !PI_PAYMENT_ID_REGEX.test(piPaymentId)) {
+      throw new Error('Invalid Pi payment ID format');
+    }
+  }
+
+  private validateTxid(txid: string): void {
+    if (!txid || !PI_TXID_REGEX.test(txid)) {
+      throw new Error('Invalid transaction ID format');
+    }
   }
 
   // App-to-User payment (server-side)
@@ -20,6 +48,8 @@ export class TecPaymentSDK {
     if (!isPiBrowser()) {
       throw new Error('Pi SDK غير متاح');
     }
+
+    this.validateAmount(amount);
 
     const idempotencyKey = crypto.randomUUID();
 
@@ -37,39 +67,61 @@ export class TecPaymentSDK {
     return new Promise((resolve, reject) => {
       // Guard: prevent duplicate completion calls (e.g. Pi SDK retry behaviour)
       let completionCalled = false;
+      let settled = false;
+
+      const safeResolve = (value: PaymentResult) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(overallTimer);
+        resolve(value);
+      };
+
+      const safeReject = (reason: Error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(overallTimer);
+        reject(reason);
+      };
+
+      // Overall timeout: approval + completion combined
+      const overallTimer = setTimeout(() => {
+        safeReject(new Error('Payment timed out — please try again'));
+      }, APPROVAL_TIMEOUT_MS + COMPLETION_TIMEOUT_MS);
 
       window.Pi.createPayment(
         { amount, memo, metadata },
         {
           onReadyForServerApproval: async (piPaymentId: string) => {
             try {
+              this.validatePiPaymentId(piPaymentId);
               await this.client.post('/api/payments/approve', {
                 payment_id: internalPaymentId,
                 pi_payment_id: piPaymentId,
               }, { 'Idempotency-Key': idempotencyKey });
             } catch (err) {
-              console.error('Server approval failed:', err);
-              reject(err instanceof Error ? err : new Error('Server approval failed'));
+              console.error('[TecSDK] Server approval failed:', err);
+              safeReject(err instanceof Error ? err : new Error('Server approval failed'));
             }
           },
           onReadyForServerCompletion: async (_piPaymentId: string, txid: string) => {
             if (completionCalled) return;
             completionCalled = true;
             try {
+              this.validateTxid(txid);
               const result = await this.client.post<PaymentResult>('/api/payments/complete', {
                 payment_id: internalPaymentId,
                 transaction_id: txid,
               }, { 'Idempotency-Key': idempotencyKey });
-              resolve(result);
+              safeResolve(result);
             } catch (err) {
-              reject(err);
+              safeReject(err instanceof Error ? err : new Error('Payment completion failed'));
             }
           },
           onCancel: () => {
-            resolve({ success: false, status: 'cancelled', amount, memo });
+            safeResolve({ success: false, status: 'cancelled', amount, memo, message: 'Payment cancelled by user' });
           },
           onError: (error: Error) => {
-            reject(error);
+            safeReject(error);
           },
         }
       );
@@ -78,7 +130,10 @@ export class TecPaymentSDK {
 
   // Get payment status
   async getPaymentStatus(paymentId: string): Promise<Payment> {
-    return this.client.get<Payment>(`/api/payments/${paymentId}/status`);
+    if (!paymentId) {
+      throw new Error('paymentId is required');
+    }
+    return this.client.get<Payment>(`/api/payments/${encodeURIComponent(paymentId)}/status`);
   }
 
   // Test Pi SDK availability

@@ -236,6 +236,7 @@ export interface PaymentResult {
   status: 'pending' | 'approved' | 'completed' | 'cancelled' | 'failed';
   amount: number;
   memo: string;
+  message?: string;
 }
 
 // ===== New SDK Configuration Types =====
