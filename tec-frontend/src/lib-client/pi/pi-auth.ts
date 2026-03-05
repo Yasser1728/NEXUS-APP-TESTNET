@@ -134,7 +134,7 @@ const authenticateWithTimeout = async (timeout?: number): Promise<PiAuthResult> 
     // Debug logging
     console.log('[TEC Pi Auth] Starting authentication...');
     console.log('[TEC Pi Auth] window.Pi exists:', typeof window.Pi !== 'undefined');
-    console.log('[TEC Pi Auth] Requested scopes:', ['username', 'payments', 'wallet_address']);
+    console.log('[TEC Pi Auth] Requested scopes:', ['username', 'payments']);
     console.log(`[TEC Pi Auth] Timeout value: ${effectiveTimeout}ms`);
 
     const timer = setTimeout(() => {
@@ -165,7 +165,7 @@ const authenticateWithTimeout = async (timeout?: number): Promise<PiAuthResult> 
     }, effectiveTimeout);
 
     console.log('[TEC Pi Auth] Calling window.Pi.authenticate()...');
-    window.Pi.authenticate(['username', 'payments', 'wallet_address'], handleIncompletePayment)
+    window.Pi.authenticate(['username', 'payments'], handleIncompletePayment)
       .then((result) => {
         clearTimeout(timer);
         const elapsed = Date.now() - startTime;

@@ -16,7 +16,7 @@ export class TecAuthSDK {
     }
 
     const piAuth = await window.Pi.authenticate(
-      ['username', 'payments', 'wallet_address'],
+      ['username', 'payments'],
       (payment) => console.warn('Incomplete payment detected:', payment)
     );
 
