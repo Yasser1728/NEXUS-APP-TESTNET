@@ -5,6 +5,14 @@ import { PiPaymentCallbacks, PaymentStatus } from '@/types/pi';
 
 type AuthStatus = 'idle' | 'connecting' | 'authenticated' | 'auth_failed';
 
+interface PiUser {
+  id?: string;
+  piId?: string;
+  username?: string;
+  piUsername?: string;
+  name?: string;
+}
+
 interface PiPaymentButtonProps {
   amount: number;
   memo: string;
@@ -17,6 +25,10 @@ const onIncompletePaymentFound = (payment: unknown) => {
   console.warn('Incomplete payment found during connect:', payment);
 };
 
+// Delay (ms) before refreshing balance after a successful payment to allow
+// the backend wallet service time to process the transaction
+const BALANCE_REFRESH_DELAY_MS = 2500;
+
 export default function PiPaymentButton({
   amount,
   memo,
@@ -26,6 +38,26 @@ export default function PiPaymentButton({
   const [status, setStatus] = useState<PaymentStatus | 'idle'>('idle');
   const [authStatus, setAuthStatus] = useState<AuthStatus>('idle');
   const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<PiUser | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceError, setBalanceError] = useState(false);
+
+  const fetchBalance = async (uid: string) => {
+    try {
+      setBalanceError(false);
+      const res = await fetch(`/api/wallet/balance?userId=${uid}`);
+      const data = await res.json();
+      if (data.balance !== undefined) {
+        setBalance(data.balance);
+      } else {
+        console.warn('Balance fetch returned unexpected data:', data);
+        setBalanceError(true);
+      }
+    } catch (err) {
+      console.error('Balance fetch error:', err);
+      setBalanceError(true);
+    }
+  };
 
   const handlePiConnect = async () => {
     try {
@@ -65,8 +97,11 @@ export default function PiPaymentButton({
           return;
         }
         // user.id is from the existing backend format; user.piId is a normalised alias
-        setUserId(user.id ?? user.piId ?? null);
+        const uid = user.id ?? user.piId ?? null;
+        setUserId(uid);
+        setUser(user);
         setAuthStatus('authenticated');
+        if (uid) fetchBalance(uid);
       } else {
         throw new Error(data.error || 'Authentication failed: no token received');
       }
@@ -115,6 +150,10 @@ export default function PiPaymentButton({
 
             setStatus('success');
             if (onSuccess) onSuccess(txid);
+            // Refresh balance after a delay to allow backend processing
+            setTimeout(() => {
+              if (userId) fetchBalance(userId);
+            }, BALANCE_REFRESH_DELAY_MS);
           } catch (err) {
             console.error(err);
             setStatus('failed');
@@ -165,17 +204,33 @@ export default function PiPaymentButton({
     );
   }
 
+  const username = user?.username ?? user?.piUsername ?? user?.name ?? 'User';
+
   return (
-    <button
-      onClick={handlePayment}
-      disabled={status === 'pending'}
-      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center transition-colors disabled:opacity-50"
-    >
-      {status === 'pending' ? (
-        <span className="animate-pulse">Processing...</span>
-      ) : (
-        <span>Pay {amount} Pi</span>
+    <div className="flex flex-col items-center gap-4 p-4 bg-purple-900 rounded-lg text-white w-full max-w-sm">
+      <p className="text-lg font-semibold">Welcome, {username} 👋</p>
+      <p className="text-sm text-purple-200">
+        Your Balance:{' '}
+        <span className="font-bold text-white">
+          {balanceError ? 'Unavailable' : balance !== null ? `${balance} TEC` : 'Loading...'}
+        </span>
+      </p>
+      <button
+        onClick={handlePayment}
+        disabled={status === 'pending'}
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center transition-colors disabled:opacity-50"
+      >
+        {status === 'pending' ? (
+          <span className="animate-pulse">Processing...</span>
+        ) : (
+          <span>Pay {amount} Pi</span>
+        )}
+      </button>
+      {status === 'success' && <p className="text-green-400 text-sm">✅ Payment successful!</p>}
+      {status === 'failed' && (
+        <p className="text-red-400 text-sm">❌ Payment failed. Please try again.</p>
       )}
-    </button>
+      {status === 'cancelled' && <p className="text-yellow-400 text-sm">⚠️ Payment cancelled.</p>}
+    </div>
   );
 }
