@@ -2,40 +2,43 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { paymentId, amount, userId } = body;
-
-    if (!paymentId || !amount) {
-      return NextResponse.json({ error: 'Missing paymentId or amount' }, { status: 400 });
-    }
-
-    if (!userId) {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Call the core backend API Gateway
-    const backendUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8080';
+    const body = await request.json();
+    const { payment_id, pi_payment_id } = body;
+
+    if (!payment_id) {
+      return NextResponse.json({ error: 'Missing required field: payment_id' }, { status: 400 });
+    }
+
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
+      'https://api-gateway-production-6a68.up.railway.app';
 
     const response = await fetch(`${backendUrl}/api/payments/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: authHeader,
       },
-      body: JSON.stringify({
-        paymentId,
-        amount,
-        userId,
-      }),
+      body: JSON.stringify({ payment_id, pi_payment_id }),
     });
 
     if (!response.ok) {
-      throw new Error(`Backend returned ${response.status}`);
+      const errData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errData?.error?.message || `Backend error ${response.status}` },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('Approve Payment Error:', error);
+  } catch (error: unknown) {
+    console.error('[Payment Approve Route] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
