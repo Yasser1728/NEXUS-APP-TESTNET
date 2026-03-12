@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -8,11 +9,13 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { payment_id, txid } = body;
+    // Support both 'txid' and 'transaction_id' field names
+    const { payment_id, transaction_id, txid } = body;
+    const finalTxId = transaction_id ?? txid;
 
-    if (!payment_id || !txid) {
+    if (!payment_id) {
       return NextResponse.json(
-        { error: 'Missing required fields: payment_id, txid (transaction_id)' },
+        { error: 'Missing required field: payment_id' },
         { status: 400 }
       );
     }
@@ -21,17 +24,21 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
       'https://api-gateway-production-6a68.up.railway.app';
 
+    const idempotencyKey = randomUUID();
+
     const response = await fetch(`${backendUrl}/api/payments/complete`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: authHeader,
+        'Authorization': authHeader,
+        'Idempotency-Key': idempotencyKey,
       },
-      body: JSON.stringify({ payment_id, transaction_id: txid }),
+      body: JSON.stringify({ payment_id, transaction_id: finalTxId }),
     });
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
+      console.error('[Payment Complete] Backend error:', JSON.stringify(errData));
       return NextResponse.json(
         { error: errData?.error?.message || `Backend error ${response.status}` },
         { status: response.status }
