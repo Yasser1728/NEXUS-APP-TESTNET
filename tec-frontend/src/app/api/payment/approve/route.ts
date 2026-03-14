@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -11,18 +12,24 @@ export async function POST(request: Request) {
     const { payment_id, pi_payment_id } = body;
 
     if (!payment_id) {
-      return NextResponse.json({ error: 'Missing required field: payment_id' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing required field: payment_id' },
+        { status: 400 }
+      );
     }
 
     const backendUrl =
       process.env.NEXT_PUBLIC_API_GATEWAY_URL ||
       'https://api-gateway-production-6a68.up.railway.app';
 
+    const idempotencyKey = randomUUID();
+
     const response = await fetch(`${backendUrl}/api/payments/approve`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: authHeader,
+        'Authorization': authHeader,
+        'Idempotency-Key': idempotencyKey,
       },
       body: JSON.stringify({ payment_id, pi_payment_id }),
     });
@@ -34,11 +41,3 @@ export async function POST(request: Request) {
         { status: response.status }
       );
     }
-
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error: unknown) {
-    console.error('[Payment Approve Route] Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
