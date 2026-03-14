@@ -3,7 +3,6 @@
    Aesthetic: Luxury Art Deco × Dark Digital
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Base ─────────────────────────────────────────────────────── */
 .main {
   min-height: 100vh;
   display: flex;
@@ -100,7 +99,6 @@
   display: flex;
   align-items: baseline;
   gap: 1px;
-  text-decoration: none;
 }
 
 .navLogoMark {
@@ -190,7 +188,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
   margin: 0 0 32px;
   line-height: 0.9;
   animation: fadeUp 0.9s ease 0.1s both;
@@ -228,7 +225,6 @@
 .heroStats {
   display: flex;
   align-items: center;
-  gap: 0;
   animation: fadeUp 0.9s ease 0.3s both;
   border: 1px solid rgba(212,175,55,0.1);
   border-radius: 16px;
@@ -277,9 +273,7 @@
 .paymentCard {
   border: 1px solid rgba(212,175,55,0.12);
   border-radius: 24px;
-  background: rgba(212,175,55,0.02);
-  padding: 2px;
-  background-image: linear-gradient(rgba(212,175,55,0.05), rgba(212,175,55,0.02));
+  background: linear-gradient(rgba(212,175,55,0.05), rgba(212,175,55,0.02));
 }
 
 .paymentCardInner {
@@ -297,6 +291,74 @@
   text-transform: uppercase;
   color: rgba(212,175,55,0.4);
   text-align: center;
+}
+
+/* ── Featured Section ─────────────────────────────────────────── */
+.featuredSection {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 24px 60px;
+}
+
+.featuredCard {
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(212,175,55,0.02) 100%);
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.3s;
+}
+
+.featuredCard:hover {
+  border-color: rgba(212,175,55,0.4);
+}
+
+.featuredEmoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.featuredTitle {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #f5d060, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.featuredDesc {
+  font-size: 14px;
+  color: rgba(232,224,208,0.45);
+  line-height: 1.7;
+  max-width: 320px;
+}
+
+.featuredBtn {
+  margin-top: 8px;
+  padding: 12px 28px;
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 100px;
+  background: rgba(212,175,55,0.08);
+  color: #d4af37;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.featuredBtn:hover {
+  background: rgba(212,175,55,0.15);
+  border-color: rgba(212,175,55,0.5);
+  transform: translateY(-2px);
 }
 
 /* ── Ecosystem Section ────────────────────────────────────────── */
@@ -403,9 +465,8 @@
 
 .appCard:hover {
   border-color: var(--cat-color, #d4af37);
-  border-opacity: 0.3;
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   background: rgba(255,255,255,0.04);
 }
 
@@ -561,89 +622,4 @@
   .appsGrid { grid-template-columns: repeat(2, 1fr); }
   .heroStats { flex-direction: column; border-radius: 12px; }
   .heroStatDivider { width: 60px; height: 1px; }
-}
-
-/* ── Featured Section ─────────────────────────────────────────── */
-.featuredSection {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 600px;
-  padding: 0 24px 60px;
-}
-
-.featuredCard {
-  border: 1px solid rgba(212,175,55,0.2);
-  border-radius: 24px;
-  background: linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(212,175,55,0.02) 100%);
-  padding: 40px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  transition: border-color 0.3s;
-}
-
-.featuredCard:hover {
-  border-color: rgba(212,175,55,0.4);
-}
-
-.featuredEmoji {
-  font-size: 48px;
-  line-height: 1;
-}
-
-.featuredTitle {
-  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
-  font-size: 36px;
-  font-weight: 500;
-  background: linear-gradient(135deg, #f5d060, #d4af37);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.featuredDesc {
-  font-size: 14px;
-  color: rgba(232,224,208,0.45);
-  line-height: 1.7;
-  max-width: 320px;
-}
-
-.featuredBtn {
-  margin-top: 8px;
-  padding: 12px 28px;
-  border: 1px solid rgba(212,175,55,0.3);
-  border-radius: 100px;
-  background: rgba(212,175,55,0.08);
-  color: #d4af37;
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.featuredBtn:hover {
-  background: rgba(212,175,55,0.15);
-  border-color: rgba(212,175,55,0.5);
-  transform: translateY(-2px);
-}
-
-/* ── Ripple Effect ────────────────────────────────────────────── */
-:global(.ripple) {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(212, 175, 55, 0.15);
-  transform: scale(0);
-  animation: rippleAnim 0.6s linear;
-  pointer-events: none;
-}
-
-@keyframes rippleAnim {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
 }
