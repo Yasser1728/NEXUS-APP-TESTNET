@@ -4,6 +4,7 @@ import { Cormorant_Garamond, DM_Sans } from 'next/font/google';
 import { ClientProviders } from '@/components/ClientProviders';
 import PiSdkLoader from '@/components/PiSdkLoader';
 import { BackendOfflineBanner } from '@/components/BackendOfflineBanner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
@@ -35,11 +36,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" dir="ltr" className={`${cormorantGaramond.variable} ${dmSans.variable}`}>
       <body>
-        {/* Load Pi SDK before hydration so window.Pi is available to PiSdkLoader */}
         <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
         <PiSdkLoader sandbox={piSandbox} timeout={sdkTimeout} />
         <BackendOfflineBanner />
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders>
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+        </ClientProviders>
       </body>
     </html>
   );
