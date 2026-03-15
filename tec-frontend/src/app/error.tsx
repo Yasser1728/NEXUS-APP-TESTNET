@@ -11,56 +11,147 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to console (in production, send to error tracking service)
     console.error('Global error:', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-          <svg
-            className="w-6 h-6 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--black)',
+      color: 'var(--white)',
+      fontFamily: "'DM Sans', sans-serif",
+      padding: '24px',
+    }}>
+      <div style={{
+        maxWidth: '440px',
+        width: '100%',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: '16px',
+        padding: '48px 32px',
+        textAlign: 'center',
+      }}>
+        {/* Icon */}
+        <div style={{
+          width: '64px',
+          height: '64px',
+          margin: '0 auto 24px',
+          background: 'rgba(231,76,60,0.1)',
+          border: '1px solid rgba(231,76,60,0.2)',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '28px',
+        }}>
+          ⚠️
         </div>
-        <h2 className="mt-4 text-xl font-bold text-center text-gray-900">
-          Something went wrong!
-        </h2>
-        <p className="mt-2 text-sm text-center text-gray-600">
+
+        {/* Title */}
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: '28px',
+          fontWeight: 400,
+          color: 'var(--white)',
+          margin: '0 0 12px',
+        }}>
+          حدث خطأ ما
+        </h1>
+
+        <p style={{
+          fontSize: '14px',
+          color: 'var(--muted)',
+          margin: '0 0 8px',
+          lineHeight: 1.6,
+        }}>
+          Something went wrong
+        </p>
+
+        <p style={{
+          fontSize: '13px',
+          color: 'var(--muted)',
+          margin: '0 0 24px',
+          lineHeight: 1.6,
+        }}>
           We encountered an error while processing your request.
         </p>
+
+        {/* Error ID */}
         {error.digest && (
-          <p className="mt-2 text-xs text-center text-gray-500">
+          <p style={{
+            fontSize: '11px',
+            color: 'var(--muted)',
+            margin: '0 0 20px',
+            letterSpacing: '0.05em',
+          }}>
             Error ID: {error.digest}
           </p>
         )}
+
+        {/* Dev error message */}
         {process.env.NODE_ENV !== 'production' && error.message && (
-          <div className="mt-4 p-3 bg-gray-100 rounded text-xs font-mono text-gray-800 overflow-auto max-h-40">
+          <div style={{
+            margin: '0 0 24px',
+            padding: '12px 16px',
+            background: 'rgba(231,76,60,0.06)',
+            border: '1px solid rgba(231,76,60,0.15)',
+            borderRadius: '8px',
+            fontSize: '11px',
+            fontFamily: 'monospace',
+            color: '#e74c3c',
+            textAlign: 'left',
+            maxHeight: '120px',
+            overflowY: 'auto',
+            wordBreak: 'break-all',
+          }}>
             {error.message}
           </div>
         )}
-        <div className="mt-6 space-y-3">
+
+        {/* Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button
             onClick={reset}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            style={{
+              width: '100%',
+              padding: '14px 24px',
+              background: 'linear-gradient(135deg, #c9a84c, #a07830)',
+              color: '#050507',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s',
+              fontFamily: 'inherit',
+            }}
+            onMouseOver={e => (e.currentTarget.style.opacity = '0.85')}
+            onMouseOut={e => (e.currentTarget.style.opacity = '1')}
           >
-            Try again
+            🔄 إعادة المحاولة / Try again
           </button>
+
           <Link
             href="/"
-            className="block w-full text-center bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
+            style={{
+              display: 'block',
+              width: '100%',
+              padding: '14px 24px',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: 'var(--muted)',
+              textDecoration: 'none',
+              textAlign: 'center',
+              transition: 'border-color 0.2s, color 0.2s',
+              boxSizing: 'border-box',
+            }}
           >
-            Go back home
+            ← العودة للرئيسية / Go back home
           </Link>
         </div>
       </div>
