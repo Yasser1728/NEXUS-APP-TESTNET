@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
-import styles from './legal.module.css';
+import styles from '../privacy/legal.module.css';
 
 const SECTIONS_EN = [
   { id: 'acceptance', title: '1. Acceptance of Terms', content: `By accessing or using any application within The Elite Consortium ("TEC") ecosystem, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.\n\nIf you do not agree to these Terms, you must immediately cease all use of TEC services.` },
