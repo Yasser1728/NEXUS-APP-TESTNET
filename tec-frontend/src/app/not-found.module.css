@@ -1,0 +1,175 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: #06060e;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bgOrb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 80vw;
+  max-width: 700px;
+  max-height: 700px;
+  background: radial-gradient(circle, rgba(212,175,55,0.04) 0%, transparent 65%);
+  border-radius: 50%;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 520px;
+  width: 100%;
+  animation: fadeUp 0.8s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.code {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: clamp(100px, 20vw, 160px);
+  font-weight: 300;
+  line-height: 1;
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.04));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  letter-spacing: -0.04em;
+}
+
+.title {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: clamp(24px, 5vw, 36px);
+  font-weight: 400;
+  color: #e8e0d0;
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+}
+
+.desc {
+  font-size: 14px;
+  color: rgba(216,208,192,0.4);
+  line-height: 1.7;
+  max-width: 360px;
+  margin-bottom: 40px;
+  letter-spacing: 0.03em;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btnPrimary {
+  padding: 12px 28px;
+  border-radius: 100px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.08));
+  border: 1px solid rgba(212,175,55,0.25);
+  color: #d4af37;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, rgba(212,175,55,0.22), rgba(212,175,55,0.12));
+  border-color: rgba(212,175,55,0.4);
+  transform: translateY(-2px);
+}
+
+.btnSecondary {
+  padding: 12px 28px;
+  border-radius: 100px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(216,208,192,0.4);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(216,208,192,0.7);
+  transform: translateY(-2px);
+}
+
+.apps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.appsLabel {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(216,208,192,0.2);
+}
+
+.appsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.appChip {
+  padding: 5px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(212,175,55,0.1);
+  color: rgba(212,175,55,0.35);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.appChip:hover {
+  border-color: rgba(212,175,55,0.25);
+  color: rgba(212,175,55,0.6);
+}
+
+@media (max-width: 480px) {
+  .actions { flex-direction: column; align-items: center; }
+  .btnPrimary, .btnSecondary { width: 200px; text-align: center; }
+}
