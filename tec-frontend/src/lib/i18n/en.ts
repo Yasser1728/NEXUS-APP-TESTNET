@@ -53,4 +53,22 @@ export const en = {
     Epic: 'Creative Products', Legend: 'Gamification', Titan: 'Enterprise Services',
     Elite: 'Professional Services', Brookfield: 'Institutional Investments',
   },
+  legal: {
+    privacy: {
+      title: 'Privacy Policy',
+      subtitle: 'The Elite Consortium',
+      badge: 'Legal Document',
+      intro: 'This policy governs how TEC collects, uses, and protects your personal data across all 24 sovereign applications in the TEC ecosystem.',
+    },
+    terms: {
+      title: 'Terms of Service',
+      subtitle: 'The Elite Consortium',
+      badge: 'Legal Document',
+      intro: 'Please read these Terms carefully before using any TEC application. By using our services, you agree to be bound by these Terms.',
+    },
+    backHome: 'Back to Home',
+    contents: 'Contents',
+    effectiveDate: 'Effective Date',
+    version: 'Version',
+  },
 };
