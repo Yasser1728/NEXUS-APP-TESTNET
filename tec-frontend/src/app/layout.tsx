@@ -7,6 +7,14 @@ import { BackendOfflineBanner } from '@/components/BackendOfflineBanner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { Metadata } from 'next';
 
+// ─── APP CONFIG ───────────────────────────────────────────────
+// ✏️ غير القيم دي بس في كل app جديد
+const APP_NAME    = 'Nexus';
+const APP_TAGLINE = 'Gateway to 24 Apps';
+const APP_DESC    = 'Connect, navigate and explore the full TEC ecosystem in one place. Built on Pi Network.';
+const APP_KEYWORDS = ['Nexus', 'TEC', 'Pi Network', 'Pi', 'blockchain', 'ecosystem', '24 apps'];
+// ──────────────────────────────────────────────────────────────
+
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['300', '400', '600'],
@@ -22,32 +30,32 @@ const dmSans = DM_Sans({
   display: 'swap',
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tec-app.vercel.app';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nexus-app-testnet.vercel.app';
 
 export const metadata: Metadata = {
   title: {
-    default: 'TEC — The Elite Consortium',
-    template: '%s | TEC',
+    default: `${APP_NAME} — ${APP_TAGLINE}`,
+    template: `%s | ${APP_NAME}`,
   },
-  description: 'A complete ecosystem of 24 sovereign apps built on Pi Network. One identity. One wallet. One world.',
-  keywords: ['TEC', 'The Elite Consortium', 'Pi Network', 'Pi', 'crypto', 'blockchain', 'ecosystem', '24 apps'],
-  authors: [{ name: 'The Elite Consortium', url: APP_URL }],
-  creator: 'The Elite Consortium',
-  publisher: 'The Elite Consortium',
+  description: APP_DESC,
+  keywords: APP_KEYWORDS,
+  authors: [{ name: APP_NAME, url: APP_URL }],
+  creator: APP_NAME,
+  publisher: APP_NAME,
   metadataBase: new URL(APP_URL),
 
   openGraph: {
     type: 'website',
     url: APP_URL,
-    siteName: 'TEC — The Elite Consortium',
-    title: 'TEC — The Elite Consortium',
-    description: 'A complete ecosystem of 24 sovereign apps built on Pi Network. One identity. One wallet. One world.',
+    siteName: `${APP_NAME} — ${APP_TAGLINE}`,
+    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    description: APP_DESC,
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'TEC — The Elite Consortium',
+        alt: `${APP_NAME} — ${APP_TAGLINE}`,
       },
     ],
     locale: 'en_US',
@@ -55,8 +63,8 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'TEC — The Elite Consortium',
-    description: 'A complete ecosystem of 24 sovereign apps built on Pi Network.',
+    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    description: APP_DESC,
     images: ['/og-image.png'],
   },
 
