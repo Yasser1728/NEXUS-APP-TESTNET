@@ -7,7 +7,7 @@ import PiPaymentButton from '@/components/payment/PiPaymentButton';
 import styles from './page.module.css';
 
 // ─── APP CONFIG ───────────────────────────────────────────────
-// غير القيم دي في كل app
+// ✏️ غير القيم دي بس في كل app جديد
 const APP_CONFIG = {
   name:        'Nexus',
   emoji:       '🌐',
@@ -40,8 +40,8 @@ export default function HomePage() {
       {/* Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.navLogo}>
-          <span className={styles.navLogoMark}>T</span>
-          <span className={styles.navLogoText}>EC</span>
+          <span className={styles.navLogoEmoji}>{APP_CONFIG.emoji}</span>
+          <span className={styles.navLogoText}>{APP_CONFIG.name}</span>
         </div>
         <div className={styles.navLinks}>
           <a href="#about" className={styles.navLink}>
@@ -118,23 +118,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Back to TEC */}
+      {/* Back to TEC Ecosystem */}
       <section className={styles.backSection}>
         <a
-          href="https://tec.pi"
+          href="https://tec-app.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.backLink}
         >
-          👑 {ar ? 'العودة إلى TEC' : 'Back to TEC'}
+          👑 {ar ? 'منظومة TEC — الـ 24 تطبيق' : 'TEC Ecosystem — 24 Apps'}
         </a>
       </section>
 
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerLogo}>
-          <span className={styles.navLogoMark}>T</span>
-          <span className={styles.navLogoText}>EC</span>
+          <span className={styles.footerLogoEmoji}>{APP_CONFIG.emoji}</span>
+          <span className={styles.footerLogoText}>{APP_CONFIG.name}</span>
         </div>
         <p className={styles.footerText}>
           © 2026 {APP_CONFIG.name}.pi · Built on Pi Network
@@ -146,7 +146,7 @@ export default function HomePage() {
       </footer>
 
       {/* Floating AI Button */}
-      <Link href="/ai" className={styles.floatingAi} aria-label="TEC Assistant">
+      <Link href="/ai" className={styles.floatingAi} aria-label="AI Assistant">
         <span className={styles.floatingAiIcon}>🤖</span>
         <span className={styles.floatingAiPulse} />
       </Link>
