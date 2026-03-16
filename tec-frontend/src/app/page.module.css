@@ -754,3 +754,112 @@
   .floatingAi { bottom: 20px; right: 20px; width: 48px; height: 48px; }
   .floatingAiIcon { font-size: 20px; }
 }
+
+/* ── Navbar Logo (Template) ───────────────────────────────────── */
+.navLogoEmoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ── About Section ────────────────────────────────────────────── */
+.aboutSection {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 24px 60px;
+}
+
+.aboutCard {
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(212,175,55,0.02) 100%);
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.3s;
+}
+
+.aboutCard:hover { border-color: rgba(212,175,55,0.4); }
+
+.aboutEmoji { font-size: 52px; line-height: 1; }
+
+.aboutTitle {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #f5d060, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.aboutDesc {
+  font-size: 14px;
+  color: rgba(232,224,208,0.45);
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.aboutBtn {
+  margin-top: 8px;
+  padding: 12px 28px;
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 100px;
+  background: rgba(212,175,55,0.08);
+  color: #d4af37;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: inline-block;
+}
+
+.aboutBtn:hover {
+  background: rgba(212,175,55,0.15);
+  border-color: rgba(212,175,55,0.5);
+  transform: translateY(-2px);
+}
+
+/* ── Back to TEC ──────────────────────────────────────────────── */
+.backSection {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 60px;
+  text-align: center;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 100px;
+  background: rgba(212,175,55,0.04);
+  color: rgba(212,175,55,0.5);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.backLink:hover {
+  border-color: rgba(212,175,55,0.3);
+  color: #d4af37;
+  background: rgba(212,175,55,0.08);
+}
+
+/* ── Footer Logo (Template) ───────────────────────────────────── */
+.footerLogoEmoji { font-size: 20px; }
+.footerLogoText {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #a08020;
+  letter-spacing: 0.1em;
+}
